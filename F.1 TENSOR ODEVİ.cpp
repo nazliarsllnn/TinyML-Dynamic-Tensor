@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-// 1. ADIM: TÝP TANIMLARI (Daha Scannable Hale Getirildi)
+// 1. ADIM: TÃP TANIMLARI (Daha Scannable Hale Getirildi)
 typedef enum { 
     TYPE_F32 = 0, 
     TYPE_F16 = 1, 
@@ -13,42 +13,42 @@ typedef struct {
     TensorType type;
     int length;
     union {
-        float* f32;     // 32-bit: Yüksek Hassasiyet
+        float* f32;     // 32-bit: YÃ¼ksek Hassasiyet
         uint16_t* f16;  // 16-bit: Orta Hassasiyet
-        int8_t* i8;     // 8-bit: Düþük Hassasiyet (Maksimum Tasarruf)
+        int8_t* i8;     // 8-bit: DÃ¼Ã¾Ã¼k Hassasiyet (Maksimum Tasarruf)
     } data;
 } Tensor;
 
-// 2. ADIM: AYRINTILI BELLEK YÖNETÝMÝ
+// 2. ADIM: AYRINTILI BELLEK YÃ–NETÃMÃ
 Tensor create_tensor(TensorType type, int length) {
     Tensor t;
     t.type = type;
     t.length = length;
     
-    // Her tipin byte boyutunu ayrýntýlý hesapla
+    // Her tipin byte boyutunu ayrÃ½ntÃ½lÃ½ hesapla
     size_t element_size = (type == TYPE_F32) ? sizeof(float) : 
                           (type == TYPE_F16) ? sizeof(uint16_t) : sizeof(int8_t);
 
-    // Bellek tahsisi ve NULL kontrolü (Gömülü sistem disiplini)
+    // Bellek tahsisi ve NULL kontrolÃ¼ (GÃ¶mÃ¼lÃ¼ sistem disiplini)
     void* mem = malloc(length * element_size);
     if (mem == NULL) {
         fprintf(stderr, "Kritik Hata: Bellek ayrilamadi!\n");
         exit(EXIT_FAILURE);
     }
     
-    t.data.f32 = (float*)mem; // Union sayesinde baþlangýç adresi eþitlendi
+    t.data.f32 = (float*)mem; // Union sayesinde baÃ¾langÃ½Ã§ adresi eÃ¾itlendi
     return t;
 }
 
 // 3. ADIM: AYRINTILI QUANTIZATION (NICEMLEME)
-// Veriyi -128 ile 127 arasýna güvenli bir þekilde sýkýþtýrýr.
+// Veriyi -128 ile 127 arasÃ½na gÃ¼venli bir Ã¾ekilde sÃ½kÃ½Ã¾tÃ½rÃ½r.
 void quantize_to_i8(Tensor* src, Tensor* dest) {
     if (src->type != TYPE_F32 || dest->type != TYPE_I8) return;
 
     for (int i = 0; i < src->length; i++) {
         float val = src->data.f32[i] * 127.0f;
         
-        // Clamping: Deðerin -128 ile 127 dýþýna çýkmasýný engeller
+        // Clamping: DeÃ°erin -128 ile 127 dÃ½Ã¾Ã½na Ã§Ã½kmasÃ½nÃ½ engeller
         if (val > 127.0f) val = 127.0f;
         if (val < -128.0f) val = -128.0f;
         
@@ -56,7 +56,7 @@ void quantize_to_i8(Tensor* src, Tensor* dest) {
     }
 }
 
-// 4. ADIM: TEKNÝK RAPORLAMA (Videoda burayý göster!)
+// 4. ADIM: TEKNÃK RAPORLAMA (Videoda burayÃ½ gÃ¶ster!)
 void print_technical_report(Tensor* t, const char* label) {
     size_t b_per_e = (t->type == TYPE_F32) ? 4 : (t->type == TYPE_F16 ? 2 : 1);
     printf(">> [%s] RAPORU\n", label);
@@ -76,16 +76,16 @@ int main() {
     int size = 5;
     printf("--- TINYML TENSOR OPTIMIZASYON DEMOSU ---\n\n");
 
-    // Orijinal Veri Seti (Örn: Bir ses sensöründen gelen veriler)
+    // Orijinal Veri Seti (Ã–rn: Bir ses sensÃ¶rÃ¼nden gelen veriler)
     Tensor f32_t = create_tensor(TYPE_F32, size);
     float sensor_data[] = {0.15f, -0.88f, 1.20f, -0.05f, 0.50f};
     for(int i=0; i<size; i++) f32_t.data.f32[i] = sensor_data[i];
 
-    // Dönüþüm Tensörleri
+    // DÃ¶nÃ¼Ã¾Ã¼m TensÃ¶rleri
     Tensor f16_t = create_tensor(TYPE_F16, size);
     Tensor i8_t = create_tensor(TYPE_I8, size);
 
-    // Ýþlemler
+    // ÃÃ¾lemler
     for(int i=0; i<size; i++) f16_t.data.f16[i] = (uint16_t)(f32_t.data.f32[i] * 1000);
     quantize_to_i8(&f32_t, &i8_t);
 
